@@ -37,24 +37,23 @@ A modern, responsive portfolio website showcasing expertise in Generative AI and
 1. Clone the repository:
    ```bash
    git clone https://github.com/HEMANTH-S-KUMAR-1/AI_HACK.git
-Install dependencies:
+   ```
 
-bash
-Copy
-Edit
-npm install
-Start the server:
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
 
-bash
-Copy
-Edit
-npm start
-Visit http://localhost:3001 in your browser
+3. Start the server:
+   ```bash
+   npm start
+   ```
 
-📁 Project Structure
-bash
-Copy
-Edit
+4. Visit http://localhost:3001 in your browser
+
+## 📁 Project Structure
+
+```
 portfolio-website/
 ├── index.html          # Main website page
 ├── admin.html          # Admin dashboard
@@ -65,65 +64,56 @@ portfolio-website/
 └── assets/             # Static assets
     ├── profile.png
     └── resume.pdf
-🔧 API Endpoints
-POST /api/contact - Submit contact form
+```
 
-GET /api/messages - Retrieve messages (admin)
+## 🔧 API Endpoints
 
-GET /health - Server health check
+- `POST /api/contact` - Submit contact form
+- `GET /api/messages` - Retrieve messages (admin)
+- `GET /health` - Server health check
 
-🧩 Detailed Features
-Frontend Features
-Responsive navigation with mobile menu
+## 🧩 Detailed Features
 
-Dynamic typing animation
+### Frontend Features
+- Responsive navigation with mobile menu
+- Dynamic typing animation
+- Interactive project cards with hover effects
+- Contact form with client-side validation
+- Particle background effects
+- Profile image hover effects
+- Social media integration
 
-Interactive project cards with hover effects
+### Backend Features
+- Express server with CORS support
+- JSON file-based message storage
+- Input validation and sanitization
+- Error handling middleware
+- Admin dashboard for message management
 
-Contact form with client-side validation
+## 🌐 Deployment
 
-Particle background effects
-
-Profile image hover effects
-
-Social media integration
-
-Backend Features
-Express server with CORS support
-
-JSON file-based message storage
-
-Input validation and sanitization
-
-Error handling middleware
-
-Admin dashboard for message management
-
-🌐 Deployment
 You can deploy this portfolio using:
-
-Vercel
-
-Netlify
-
-GitHub Pages (Frontend only)
+- Vercel
+- Netlify
+- GitHub Pages (Frontend only)
 
 Example using Vercel:
-
-bash
-Copy
-Edit
+```bash
 npm run build
 vercel --prod
-🤝 Contributing
+```
+
+## 🤝 Contributing
+
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss the proposed changes.
 
-📝 License
+## 📝 License
+
 This project is licensed under the ISC License.
 
-📞 Contact
-Email: hemanth.1si22ei049@gmail.com
+## 📞 Contact
 
-GitHub: HEMANTH-S-KUMAR-1
+- Email: hemanth.1si22ei049@gmail.com
+- GitHub: [HEMANTH-S-KUMAR-1](https://github.com/HEMANTH-S-KUMAR-1)
 
-<div align="center"> Made with ❤️ by Hemanth S Kumar </div>
+<div align="center">Made with ❤️ by Hemanth S Kumar</div>
