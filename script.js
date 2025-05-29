@@ -112,83 +112,45 @@ document.addEventListener('DOMContentLoaded', () => {
         return errors;
     }
 
+    // API endpoint configuration
+    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:3001'
+        : window.location.origin;
+
     // Enhanced contact form handling
     const contactForm = document.getElementById('contactForm');
     if (contactForm) {
         const submitButton = contactForm.querySelector('button[type="submit"]');
         const inputs = contactForm.querySelectorAll('input, textarea');
         
-        // Define API URLs with fallback
-        const API_URLS = [
-            'http://localhost:3001/api/contact',
-            'http://127.0.0.1:3001/api/contact'
-        ];
-        
-        contactForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            // Disable form while processing
-            submitButton.disabled = true;
-            submitButton.textContent = 'Sending...';
-            inputs.forEach(input => input.disabled = true);
-            
+        async function sendMessage(formData) {
             try {
-                // Get form data
-                const formData = {
-                    name: this.querySelector('input[name="name"]').value.trim(),
-                    email: this.querySelector('input[name="email"]').value.trim(),
-                    message: this.querySelector('textarea[name="message"]').value.trim()
-                };
+                const response = await fetch(`${API_BASE_URL}/api/contact`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
                 
-                // Validate inputs
-                const errors = validateForm(formData);
-                if (errors.length > 0) {
-                    throw new Error(errors.join('\n'));
+                if (response.ok) {
+                    showNotification('Message sent successfully!', 'success');
+                    this.reset();
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to send message');
                 }
-                
-                // Try each API URL until one works
-                let response = null;
-                let error = null;
-                
-                for (const url of API_URLS) {
-                    try {
-                        const res = await fetch(url, {
-                            method: 'POST',
-                            headers: { 
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(formData)
-                        });
-                        
-                        if (res.ok) {
-                            response = await res.json();
-                            break;
-                        }
-                        
-                        const errorData = await res.json();
-                        throw new Error(errorData.error || 'Failed to send message');
-                    } catch (e) {
-                        error = e;
-                    }
-                }
-                
-                if (!response) {
-                    throw error || new Error('Failed to connect to server. Please check if the server is running.');
-                }
-                
-                // Show success message
-                showNotification('Message sent successfully!', 'success');
-                this.reset();
-                
             } catch (error) {
+                console.error('Error:', error);
                 showNotification(error.message, 'error');
             } finally {
-                // Reset form state
                 submitButton.textContent = 'Send Message';
                 submitButton.disabled = false;
                 inputs.forEach(input => input.disabled = false);
             }
-        });
+        }
+
+        contactForm.addEventListener('submit', sendMessage.bind(contactForm));
     }
 
     // Notification system

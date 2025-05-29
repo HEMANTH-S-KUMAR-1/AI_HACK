@@ -557,7 +557,7 @@ button[type="submit"].btn:hover::after {
     .nav-links li {
         margin: 15px 0;
     }
-
+    
     .mobile-menu {
         display: block;
     }
