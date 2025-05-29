@@ -92,16 +92,22 @@ portfolio-website/
 
 ## 🌐 Deployment
 
-You can deploy this portfolio using:
-- Vercel
-- Netlify
-- GitHub Pages (Frontend only)
+This portfolio is deployed using Cloudflare Pages. Here's how to deploy:
 
-Example using Vercel:
-```bash
-npm run build
-vercel --prod
-```
+1. Push your code to GitHub repository
+2. Go to [Cloudflare Pages](https://pages.cloudflare.com/)
+3. Click "Create a project" and select your GitHub repository
+4. Configure your build settings:
+   - Build command: `npm run build`
+   - Build output directory: `build`
+   - Node.js version: 18 (or latest LTS)
+5. Click "Save and Deploy"
+
+### Custom Domain Setup (Optional)
+1. In your Cloudflare Pages project, go to "Custom domains"
+2. Click "Set up a custom domain"
+3. Enter your domain name
+4. Follow the DNS configuration instructions provided by Cloudflare
 
 ## 🤝 Contributing
 
