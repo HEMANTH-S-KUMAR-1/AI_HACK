@@ -5,7 +5,7 @@
 // API endpoint configuration
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3001'
-    : window.location.origin;
+    : 'https://ai-hack-1.onrender.com';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize AOS with error handling
@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitButton.disabled = true;
                 inputs.forEach(input => input.disabled = true);
 
-                const response = await fetch('http://localhost:3001/api/contact', {
+                const response = await fetch(`${API_BASE_URL}/api/contact`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
