@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3001;
 
 // CORS configuration
 const corsOptions = {
-    origin: ['http://localhost:3001', 'https://ai-hack-1.onrender.com', 'http://127.0.0.1:3001'],
+    origin: '*',  // Allow all origins
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type'],
     credentials: true
