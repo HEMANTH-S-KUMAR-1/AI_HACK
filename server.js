@@ -2,12 +2,24 @@ const express = require('express');
 const fs = require('fs').promises; // Use promises-based fs
 const path = require('path');
 const cors = require('cors');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
-// Configure CORS to allow all origins during development
+// Security middleware
+app.use(helmet());
+
+// Rate limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per windowMs
+});
+app.use(limiter);
+
+// Configure CORS with more specific settings
 app.use(cors({
-    origin: '*',
+    origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Accept'],
     credentials: true
@@ -115,10 +127,16 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Error handling middleware
+// Enhanced error handling middleware
 app.use((err, req, res, next) => {
     console.error('Server error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    const statusCode = err.statusCode || 500;
+    const message = err.message || 'Internal server error';
+    res.status(statusCode).json({ 
+        error: message,
+        status: statusCode,
+        timestamp: new Date().toISOString()
+    });
 });
 
 // Start server
@@ -134,4 +152,13 @@ server.on('error', (error) => {
 
 process.on('unhandledRejection', (reason, promise) => {
     console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+    console.log('SIGTERM signal received: closing HTTP server');
+    server.close(() => {
+        console.log('HTTP server closed');
+        process.exit(0);
+    });
 });

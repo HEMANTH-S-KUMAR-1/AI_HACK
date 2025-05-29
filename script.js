@@ -69,23 +69,56 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Navbar scroll effect
+    // Enhanced scroll handling
+    let lastScroll = 0;
+    const nav = document.querySelector('nav');
+
     window.addEventListener('scroll', () => {
-        const nav = document.querySelector('nav');
-        if (window.scrollY > 100) {
+        const currentScroll = window.pageYOffset;
+        
+        // Navbar background
+        if (currentScroll > 100) {
             nav.style.background = 'rgba(10, 10, 10, 0.95)';
         } else {
             nav.style.background = 'rgba(10, 10, 10, 0.9)';
         }
+        
+        // Hide/show navbar on scroll
+        if (currentScroll > lastScroll && currentScroll > 100) {
+            nav.style.transform = 'translateY(-100%)';
+        } else {
+            nav.style.transform = 'translateY(0)';
+        }
+        
+        lastScroll = currentScroll;
     });
 
-    // Contact form handling
+    // Enhanced form validation
+    function validateForm(formData) {
+        const errors = [];
+        
+        if (!formData.name || formData.name.length < 2) {
+            errors.push('Name must be at least 2 characters long');
+        }
+        
+        if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            errors.push('Please enter a valid email address');
+        }
+        
+        if (!formData.message || formData.message.length < 10) {
+            errors.push('Message must be at least 10 characters long');
+        }
+        
+        return errors;
+    }
+
+    // Enhanced contact form handling
     const contactForm = document.getElementById('contactForm');
     if (contactForm) {
         const submitButton = contactForm.querySelector('button[type="submit"]');
         const inputs = contactForm.querySelectorAll('input, textarea');
         
-        // Define API URLs
+        // Define API URLs with fallback
         const API_URLS = [
             'http://localhost:3001/api/contact',
             'http://127.0.0.1:3001/api/contact'
@@ -108,17 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 
                 // Validate inputs
-                if (!formData.name || !formData.email || !formData.message) {
-                    throw new Error('Please fill in all fields.');
+                const errors = validateForm(formData);
+                if (errors.length > 0) {
+                    throw new Error(errors.join('\n'));
                 }
-                
-                // Validate email format
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(formData.email)) {
-                    throw new Error('Please enter a valid email address.');
-                }
-                
-                console.log('Sending message:', formData); // Debug log
                 
                 // Try each API URL until one works
                 let response = null;
@@ -126,7 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 for (const url of API_URLS) {
                     try {
-                        console.log('Trying API URL:', url); // Debug log
                         const res = await fetch(url, {
                             method: 'POST',
                             headers: { 
@@ -137,14 +162,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         if (res.ok) {
                             response = await res.json();
-                            console.log('Server response:', response); // Debug log
                             break;
                         }
                         
                         const errorData = await res.json();
                         throw new Error(errorData.error || 'Failed to send message');
                     } catch (e) {
-                        console.error('Error with URL', url, ':', e);
                         error = e;
                     }
                 }
@@ -154,68 +177,54 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 // Show success message
-                submitButton.textContent = 'Message Sent!';
-                submitButton.style.background = 'linear-gradient(45deg, #00ff00, #00aa00)';
+                showNotification('Message sent successfully!', 'success');
                 this.reset();
                 
-                // Reset button after 2 seconds
-                setTimeout(() => {
-                    submitButton.textContent = 'Send Message';
-                    submitButton.style.background = '';
-                    submitButton.disabled = false;
-                    inputs.forEach(input => input.disabled = false);
-                }, 2000);
-                
             } catch (error) {
-                console.error('Contact form error:', error);
-                
-                // Show detailed error message
-                let errorMessage = error.message;
-                if (error.message.includes('Failed to fetch')) {
-                    errorMessage = 'Unable to connect to server. Please ensure the server is running at http://localhost:3001';
-                } else if (error.message.includes('NetworkError')) {
-                    errorMessage = 'Network error. Please check your internet connection.';
-                }
-                
-                // Create and show error message in a more user-friendly way
-                const errorDiv = document.createElement('div');
-                errorDiv.style.color = '#ff4444';
-                errorDiv.style.padding = '10px';
-                errorDiv.style.marginTop = '10px';
-                errorDiv.style.borderRadius = '4px';
-                errorDiv.style.backgroundColor = 'rgba(255, 68, 68, 0.1)';
-                errorDiv.textContent = errorMessage || 'Failed to send message. Please try again.';
-                
-                // Remove any existing error message
-                const existingError = contactForm.querySelector('.error-message');
-                if (existingError) {
-                    existingError.remove();
-                }
-                
-                errorDiv.className = 'error-message';
-                contactForm.appendChild(errorDiv);
-                
-                // Remove error message after 5 seconds
-                setTimeout(() => {
-                    errorDiv.remove();
-                }, 5000);
-                
+                showNotification(error.message, 'error');
+            } finally {
                 // Reset form state
                 submitButton.textContent = 'Send Message';
-                submitButton.style.background = '';
                 submitButton.disabled = false;
                 inputs.forEach(input => input.disabled = false);
             }
         });
     }
 
-    // Mobile menu toggle
+    // Notification system
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Trigger animation
+        setTimeout(() => notification.classList.add('show'), 10);
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => notification.remove(), 300);
+        }, 5000);
+    }
+
+    // Enhanced mobile menu
     const mobileMenu = document.querySelector('.mobile-menu');
     const navLinks = document.querySelector('.nav-links');
 
     if (mobileMenu && navLinks) {
         mobileMenu.addEventListener('click', () => {
             navLinks.classList.toggle('active');
+            mobileMenu.classList.toggle('active');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!mobileMenu.contains(e.target) && !navLinks.contains(e.target)) {
+                navLinks.classList.remove('active');
+                mobileMenu.classList.remove('active');
+            }
         });
     }
 
