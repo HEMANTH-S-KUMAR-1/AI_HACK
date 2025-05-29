@@ -92,16 +92,38 @@ portfolio-website/
 
 ## 🌐 Deployment
 
-This portfolio is deployed using Cloudflare Pages. Here's how to deploy:
+This portfolio is deployed using Cloudflare Pages and Workers. Here's how to deploy:
 
 1. Push your code to GitHub repository
-2. Go to [Cloudflare Pages](https://pages.cloudflare.com/)
-3. Click "Create a project" and select your GitHub repository
-4. Configure your build settings:
+2. Install Wrangler CLI:
+   ```bash
+   npm install -g wrangler
+   ```
+
+3. Login to Cloudflare:
+   ```bash
+   wrangler login
+   ```
+
+4. Create a KV namespace for messages:
+   ```bash
+   wrangler kv:namespace create "MESSAGES_KV"
+   ```
+
+5. Deploy the Worker:
+   ```bash
+   npm run deploy
+   ```
+
+6. Go to [Cloudflare Pages](https://pages.cloudflare.com/)
+7. Click "Create a project" and select your GitHub repository
+8. Configure your build settings:
    - Build command: `npm run build`
    - Build output directory: `build`
    - Node.js version: 18 (or latest LTS)
-5. Click "Save and Deploy"
+9. Add environment variables:
+   - `MESSAGES_KV`: Your KV namespace ID
+10. Click "Save and Deploy"
 
 ### Custom Domain Setup (Optional)
 1. In your Cloudflare Pages project, go to "Custom domains"
