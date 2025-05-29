@@ -3,9 +3,14 @@
 // form handling, and other interactive features.
 
 // API endpoint configuration
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:3001'
-    : 'https://ai-hack-1.onrender.com';
+const API_BASE_URL = (() => {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'http://localhost:8787';
+    }
+    // Use the deployed Worker URL
+    return 'https://portfolio-backend.1si22im013.workers.dev';
+})();
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize AOS with error handling

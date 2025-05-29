@@ -2,5 +2,18 @@ name = "portfolio-backend"
 main = "worker.js"
 compatibility_date = "2024-01-01"
 
-[vars]
-MESSAGES_KV = "messages" 
+# KV Namespace binding
+kv_namespaces = [
+  { binding = "MESSAGES_KV", id = "ba003b6a0f1045dba5a045edf6a8b9e2" }
+]
+
+# Static assets configuration
+[site]
+bucket = "./"
+include = ["*.html", "*.css", "*.js", "assets/*"]
+exclude = ["node_modules/*", "*.md", "*.json"]
+
+# Development configuration
+[dev]
+port = 8787
+local_protocol = "http" 

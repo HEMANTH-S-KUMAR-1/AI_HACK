@@ -67,7 +67,9 @@ export default {
         
         for (const key of list.keys) {
           const message = await env.MESSAGES_KV.get(key.name, 'json');
-          messages.push(message);
+          if (message) {
+            messages.push(message);
+          }
         }
 
         return new Response(
@@ -82,8 +84,18 @@ export default {
       }
 
       // Serve static files
-      return env.ASSETS.fetch(request);
+      try {
+        const file = await env.ASSETS.fetch(request);
+        if (file.status === 404) {
+          return new Response('Not Found', { status: 404 });
+        }
+        return file;
+      } catch (error) {
+        console.error('Error serving static file:', error);
+        return new Response('Not Found', { status: 404 });
+      }
     } catch (error) {
+      console.error('Error:', error);
       return new Response(
         JSON.stringify({ error: 'Server error' }),
         {
