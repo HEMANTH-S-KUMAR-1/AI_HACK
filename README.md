@@ -131,6 +131,13 @@ This portfolio is deployed using Cloudflare Pages and Workers. Here's how to dep
 3. Enter your domain name
 4. Follow the DNS configuration instructions provided by Cloudflare
 
+## 🛡️ Admin Dashboard
+
+The admin dashboard (`admin.html`) now fetches messages directly from your Cloudflare Worker backend:
+
+- Endpoint: `https://portfolio-backend.1si22im013.workers.dev/api/messages`
+- To change the endpoint, update the `API_BASE_URL` constant in the `<script>` section of `admin.html`.
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss the proposed changes.
