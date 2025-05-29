@@ -2,15 +2,25 @@
 // It includes the initialization of animations, typing effects, smooth scrolling, 
 // form handling, and other interactive features.
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize AOS
-    AOS.init({
-        duration: 1000,
-        easing: 'ease-in-out',
-        once: true
-    });
+// API endpoint configuration
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3001'
+    : window.location.origin;
 
-    // Typing Animation
+document.addEventListener('DOMContentLoaded', () => {
+    // Initialize AOS with error handling
+    try {
+        AOS.init({
+            duration: 1000,
+            easing: 'ease-in-out',
+            once: true,
+            disable: 'mobile' // Disable on mobile for better performance
+        });
+    } catch (error) {
+        console.error('Error initializing AOS:', error);
+    }
+
+    // Typing Animation with cleanup
     const typingText = document.getElementById('typing-text');
     const phrases = [
         'Generative AI Engineer',
@@ -23,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let phraseIndex = 0;
     let charIndex = 0;
     let isDeleting = false;
+    let typingTimeout;
     
     function typeWriter() {
         if (!typingText) return;
@@ -47,12 +58,19 @@ document.addEventListener('DOMContentLoaded', () => {
             typeSpeed = 500;
         }
         
-        setTimeout(typeWriter, typeSpeed);
+        typingTimeout = setTimeout(typeWriter, typeSpeed);
     }
     
-    // Start typing animation
+    // Start typing animation with cleanup
     if (typingText) {
-        setTimeout(typeWriter, 1000);
+        typingTimeout = setTimeout(typeWriter, 1000);
+    }
+
+    // Cleanup function for typing animation
+    function cleanupTyping() {
+        if (typingTimeout) {
+            clearTimeout(typingTimeout);
+        }
     }
 
     // Smooth scrolling for navigation links
@@ -93,64 +111,55 @@ document.addEventListener('DOMContentLoaded', () => {
         lastScroll = currentScroll;
     });
 
-    // Enhanced form validation
-    function validateForm(formData) {
-        const errors = [];
-        
-        if (!formData.name || formData.name.length < 2) {
-            errors.push('Name must be at least 2 characters long');
-        }
-        
-        if (!formData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            errors.push('Please enter a valid email address');
-        }
-        
-        if (!formData.message || formData.message.length < 10) {
-            errors.push('Message must be at least 10 characters long');
-        }
-        
-        return errors;
-    }
-
-    // API endpoint configuration
-    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:3001'
-        : window.location.origin;
-
-    // Enhanced contact form handling
+    // Enhanced form handling with debounce
+    let isSubmitting = false;
     const contactForm = document.getElementById('contactForm');
     if (contactForm) {
         const submitButton = contactForm.querySelector('button[type="submit"]');
         const inputs = contactForm.querySelectorAll('input, textarea');
         
         async function sendMessage(formData) {
+            if (isSubmitting) return;
+            isSubmitting = true;
+            
             try {
-                const response = await fetch(`${API_BASE_URL}/api/contact`, {
+                submitButton.textContent = 'Sending...';
+                submitButton.disabled = true;
+                inputs.forEach(input => input.disabled = true);
+
+                const response = await fetch('http://localhost:3001/api/contact', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(formData)
                 });
+
+                const data = await response.json();
                 
-                if (response.ok) {
-                    showNotification('Message sent successfully!', 'success');
-                    this.reset();
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Failed to send message');
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to send message');
                 }
+                
+                showNotification('Message sent successfully!', 'success');
+                contactForm.reset();
             } catch (error) {
                 console.error('Error:', error);
-                showNotification(error.message, 'error');
+                showNotification('Failed to send message. Please try again.', 'error');
             } finally {
+                isSubmitting = false;
                 submitButton.textContent = 'Send Message';
                 submitButton.disabled = false;
                 inputs.forEach(input => input.disabled = false);
             }
         }
 
-        contactForm.addEventListener('submit', sendMessage.bind(contactForm));
+        contactForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(contactForm);
+            const data = Object.fromEntries(formData.entries());
+            sendMessage(data);
+        });
     }
 
     // Notification system
@@ -213,8 +222,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Dynamic background particles
+    // Optimize particle animation
+    let particleInterval;
+    const maxParticles = 50;
+    let activeParticles = 0;
+
     function createParticle() {
+        if (activeParticles >= maxParticles) return;
+        activeParticles++;
+
         const particle = document.createElement('div');
         particle.style.position = 'fixed';
         particle.style.width = '2px';
@@ -231,22 +247,37 @@ document.addEventListener('DOMContentLoaded', () => {
         let position = -10;
         const speed = Math.random() * 3 + 1;
         
-        const animate = () => {
+        function animate() {
             position += speed;
             particle.style.top = position + 'px';
             
             if (position > window.innerHeight) {
                 document.body.removeChild(particle);
+                activeParticles--;
             } else {
                 requestAnimationFrame(animate);
             }
-        };
+        }
         
         animate();
     }
 
-    // Create particles periodically
-    setInterval(createParticle, 1000);
+    // Start particle animation with cleanup
+    particleInterval = setInterval(createParticle, 1000);
+
+    // Cleanup function
+    function cleanup() {
+        cleanupTyping();
+        if (particleInterval) {
+            clearInterval(particleInterval);
+        }
+        document.querySelectorAll('.particle').forEach(particle => {
+            document.body.removeChild(particle);
+        });
+    }
+
+    // Add cleanup on page unload
+    window.addEventListener('unload', cleanup);
 
     // Add intersection observer for animations
     const observerOptions = {

@@ -3,213 +3,179 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viewer Messages - Admin</title>
+    <title>Admin - View Messages</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            background: #111; 
-            color: #fff; 
-            padding: 2rem;
+        body {
+            font-family: Arial, sans-serif;
             margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
-            margin-top: 2rem;
-            background: #1a1a1a;
-        }
-        th, td { 
-            border: 1px solid #444; 
-            padding: 1rem;
-            text-align: left;
-        }
-        th { 
-            background: #222;
-            position: sticky;
-            top: 0;
-        }
-        tr:nth-child(even) { background: #181818; }
-        tr:hover { background: #2a2a2a; }
-        .error { 
-            color: #ff4444; 
-            padding: 1rem; 
-            text-align: center;
-            background: rgba(255, 68, 68, 0.1);
-            border-radius: 4px;
-            margin: 1rem 0;
-        }
-        .loading { 
-            color: #00ffff; 
-            padding: 1rem; 
-            text-align: center;
-            background: rgba(0, 255, 255, 0.1);
-            border-radius: 4px;
-            margin: 1rem 0;
-        }
-        .success {
-            color: #00ff00;
-            padding: 1rem;
-            text-align: center;
-            background: rgba(0, 255, 0, 0.1);
-            border-radius: 4px;
-            margin: 1rem 0;
-        }
-        .controls {
-            margin: 1rem 0;
+        .header {
             display: flex;
-            gap: 1rem;
+            justify-content: space-between;
             align-items: center;
+            margin-bottom: 20px;
         }
-        button {
-            padding: 0.5rem 1rem;
-            background: #333;
-            color: #fff;
+        .search-box {
+            padding: 8px;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .btn {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            transition: background 0.3s;
         }
-        button:hover {
-            background: #444;
+        .btn:hover {
+            background: #0056b3;
         }
-        .search {
-            padding: 0.5rem;
-            background: #333;
-            color: #fff;
-            border: 1px solid #444;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .error {
+            color: red;
+            padding: 10px;
+            background: #ffe6e6;
             border-radius: 4px;
-            width: 200px;
-        }
-        .message-cell {
-            max-width: 300px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-        .message-cell:hover {
-            white-space: normal;
-            overflow: visible;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Viewer Messages</h1>
-        <div class="controls">
-            <input type="text" id="searchInput" class="search" placeholder="Search messages...">
-            <button onclick="refreshMessages()">Refresh</button>
-            <button onclick="exportToCSV()">Export to CSV</button>
+        <div class="header">
+            <h1>Viewer Messages</h1>
+            <div>
+                <input type="text" class="search-box" placeholder="Search messages..." id="searchInput">
+                <button class="btn" onclick="refreshMessages()">Refresh</button>
+                <button class="btn" onclick="exportToCSV()">Export to CSV</button>
+            </div>
         </div>
-        <div id="status"></div>
-        <div style="overflow-x: auto;">
-            <table id="messagesTable">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Message</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        </div>
+        <div id="error" class="error" style="display: none;"></div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody id="messagesTable">
+            </tbody>
+        </table>
     </div>
+
     <script>
-        const status = document.getElementById('status');
-        const tbody = document.querySelector('#messagesTable tbody');
-        const searchInput = document.getElementById('searchInput');
-        let messages = [];
-        
-        // Load messages
-        async function loadMessages() {
-            status.innerHTML = '<div class="loading">Loading messages...</div>';
+        // Fetch messages
+        async function fetchMessages() {
             try {
                 const response = await fetch('http://localhost:3001/api/messages');
-                if (!response.ok) throw new Error('Failed to fetch messages');
-                messages = await response.json();
+                if (!response.ok) {
+                    throw new Error('Failed to fetch messages');
+                }
+                const messages = await response.json();
                 displayMessages(messages);
-                status.innerHTML = '';
+                hideError();
             } catch (error) {
-                status.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                showError(error.message);
             }
         }
 
-        // Display messages
-        function displayMessages(messagesToShow) {
+        // Display messages in table
+        function displayMessages(messages) {
+            const tbody = document.getElementById('messagesTable');
             tbody.innerHTML = '';
-            if (messagesToShow.length === 0) {
-                status.innerHTML = '<div class="loading">No messages found.</div>';
-                return;
-            }
             
-            messagesToShow.reverse().forEach(msg => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${new Date(msg.date).toLocaleString()}</td>
-                    <td>${escapeHtml(msg.name)}</td>
-                    <td>${escapeHtml(msg.email)}</td>
-                    <td class="message-cell">${escapeHtml(msg.message)}</td>
+            messages.forEach(message => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(message.date).toLocaleString()}</td>
+                    <td>${message.name}</td>
+                    <td>${message.email}</td>
+                    <td>${message.message}</td>
                 `;
-                tbody.appendChild(tr);
+                tbody.appendChild(row);
             });
         }
 
         // Search functionality
-        searchInput.addEventListener('input', (e) => {
+        document.getElementById('searchInput').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
-            const filteredMessages = messages.filter(msg => 
-                msg.name.toLowerCase().includes(searchTerm) ||
-                msg.email.toLowerCase().includes(searchTerm) ||
-                msg.message.toLowerCase().includes(searchTerm)
-            );
-            displayMessages(filteredMessages);
+            const rows = document.querySelectorAll('#messagesTable tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
         });
-
-        // Refresh messages
-        function refreshMessages() {
-            loadMessages();
-        }
 
         // Export to CSV
         function exportToCSV() {
-            const headers = ['Date', 'Name', 'Email', 'Message'];
-            const csvContent = [
-                headers.join(','),
-                ...messages.map(msg => [
-                    new Date(msg.date).toLocaleString(),
-                    msg.name,
-                    msg.email,
-                    msg.message
-                ].map(field => `"${field.replace(/"/g, '""')}"`).join(','))
-            ].join('\n');
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `messages_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
+            const rows = document.querySelectorAll('#messagesTable tr');
+            let csv = 'Date,Name,Email,Message\n';
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                const rowData = Array.from(cells).map(cell => `"${cell.textContent}"`).join(',');
+                csv += rowData + '\n';
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'messages.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
         }
 
-        // Security: Escape HTML
-        function escapeHtml(unsafe) {
-            return unsafe
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        // Refresh messages
+        function refreshMessages() {
+            fetchMessages();
+        }
+
+        // Error handling
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        function hideError() {
+            const errorDiv = document.getElementById('error');
+            errorDiv.style.display = 'none';
         }
 
         // Initial load
-        loadMessages();
-
-        // Auto-refresh every 5 minutes
-        setInterval(loadMessages, 5 * 60 * 1000);
+        fetchMessages();
     </script>
 </body>
 </html>

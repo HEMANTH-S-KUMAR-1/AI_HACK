@@ -1,0 +1,88 @@
+TERMINAL COMMANDS REFERENCE
+=========================
+
+1. Server Management Commands
+---------------------------
+node server.js
+- Brief: Starts the Node.js server
+- Detailed: 
+  * Runs the Express server defined in server.js
+  * Server listens on port 3001 by default
+  * Handles API requests for contact form and message management
+  * Serves static files and HTML pages
+
+2. Process Management Commands
+----------------------------
+netstat -ano | findstr :3001
+- Brief: Checks if port 3001 is in use
+- Detailed:
+  * netstat: Network statistics command
+  * -ano: Shows all connections and listening ports with process IDs
+  * findstr: Filters output for port 3001
+  * Output shows:
+    - TCP connection status
+    - Local and remote addresses
+    - Process ID (PID) using the port
+
+taskkill /F /PID <process_id>
+- Brief: Forcefully terminates a process
+- Detailed:
+  * /F: Forces the process to terminate
+  * /PID: Specifies the process ID to terminate
+  * Used to stop the Node.js server when it's running
+  * Example: taskkill /F /PID 1234
+
+3. Package Management Commands
+----------------------------
+npm install express cors helmet express-rate-limit uuid
+- Brief: Installs required Node.js packages
+- Detailed:
+  * express: Web framework for Node.js
+  * cors: Middleware for handling Cross-Origin Resource Sharing
+  * helmet: Security middleware
+  * express-rate-limit: Rate limiting middleware
+  * uuid: Generates unique identifiers
+
+4. File System Commands
+----------------------
+dir
+- Brief: Lists directory contents
+- Detailed:
+  * Shows files and folders in current directory
+  * Displays file sizes and last modified dates
+  * Useful for verifying file presence
+
+5. Common Issues and Solutions
+-----------------------------
+1. "EADDRINUSE" Error:
+   - Problem: Port 3001 is already in use
+   - Solution: 
+     a. Run: netstat -ano | findstr :3001
+     b. Note the PID
+     c. Run: taskkill /F /PID <PID>
+     d. Restart server: node server.js
+
+2. "Failed to fetch" Error:
+   - Problem: CORS or connection issues
+   - Solution:
+     a. Ensure server is running
+     b. Check if port 3001 is accessible
+     c. Verify CORS configuration in server.js
+
+6. Development Workflow
+----------------------
+1. Start Development:
+   - Install dependencies: npm install
+   - Start server: node server.js
+   - Access website: http://localhost:3001
+   - Access admin panel: http://localhost:3001/admin
+
+2. Restart Server:
+   - Stop current server: taskkill /F /PID <PID>
+   - Start server: node server.js
+
+3. Monitor Server:
+   - Check port usage: netstat -ano | findstr :3001
+   - View running processes: tasklist | findstr node
+
+Note: All commands are for Windows PowerShell. For other operating systems, equivalent commands may differ. 
